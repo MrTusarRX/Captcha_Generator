@@ -4,6 +4,6 @@
 	  echo "captcha validated.";
 	} 
 	else{
-	  echo "captcha validation failed.";
+	  echo "Oops! The captcha you entered is incorrect.";
 	}
 ?>
