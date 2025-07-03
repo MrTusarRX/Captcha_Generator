@@ -1,64 +1,43 @@
 <?php
-//STARTING  SESSION
-  //GENERATING RANDOM 4 CHARACTER FOR CAPTCHA
-    $string='ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890';
-    $string_shuff=str_shuffle($string);
-    $text=substr($string_shuff,0,4);
+session_start();
 
-  //STARTING AND CREATING SESSION
-    session_start();
-    $_SESSION['secure']=$text;
-//DEFINING CONTENT TYPE TO IMAGE - JPEG
-  header('content-type: image/jpeg');
-//GETTING SESSION VARIABLE
-  $text=$_SESSION['secure'];
+//you can generate as many digit as you want just change $length It's currently set to 4.
+function generateCaptchaCode($length = 6) {
+    $characters = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    return substr(str_shuffle($characters), 0, $length);
+}
 
-//CREATING IMAGE WITH DIMENTION 158x60
-  $image_height=60;
-  $image_width=(32*4)+30;
-  $image = imagecreate($image_width, $image_height);
-  //DEFINING BACKGROUND COLOUR TO WHITE
-  imagecolorallocate($image, 255 ,255, 255);
+$captcha = generateCaptchaCode();
+$_SESSION['secure'] = $captcha; 
 
+$width = 180;
+$height = 60;
+$image = imagecreatetruecolor($width, $height);
+$bgColor = imagecolorallocate($image, 255, 255, 255);
+imagefilledrectangle($image, 0, 0, $width, $height, $bgColor);
+for ($i = 0; $i < 12; $i++) {
+    $lineColor = imagecolorallocate($image, rand(150,200), rand(150,200), rand(150,200));
+    imageline($image, rand(0,$width), rand(0,$height), rand(0,$width), rand(0,$height), $lineColor);
+}
+$fontDir = __DIR__ . '/fonts/';
+$fontFile = $fontDir . rand(1, 5) . '.ttf'; 
+$fontSize = 24;
+$spacing = 25;
+$baseX = 15;
+$baseY = 40;
+for ($i = 0; $i < strlen($captcha); $i++) {
+    $r = rand(0, 100);
+    $g = rand(0, 100);
+    $b = rand(0, 100);
+    $angle = rand(-15, 15);
+    $xOffset = rand(-2, 2);
+    $yOffset = rand(-2, 2);
+    $textColor = imagecolorallocate($image, $r, $g, $b);
+    imagettftext($image, $fontSize, $angle, $baseX + $i * $spacing + $xOffset, $baseY + $yOffset, $textColor, $fontFile, $captcha[$i]);
+}
 
-//FOR LOOP FOR CREATING TEXT
-  for ($i=1; $i<=4;$i++){
-    //CREATING RANDOM FONT-SIZE
-      $font_size=rand(22,27);
-    //FOR RANDOM COLOUR
-      $r=rand(0,255);
-      $g=rand(0,255);
-      $b=rand(0,255);
-    //RANDOM INDEX FOR RANDOM TEXT FONT
-      $index=rand(1,10);
-    //RANDOM POSITION AND ORIANTION
-      $x=15+(30*($i-1));
-      $x=rand($x-5,$x+5);
-      $y=rand(35,45);
-      $o=rand(-30,30);
-    //RANDOM FONT COLOR
-      $font_color = imagecolorallocate($image, $r ,$g, $b);
-    //CREATING IMAGE USING DIFFETENT FONTS
-      imagettftext($image, $font_size, $o, $x, $y ,  $font_color,'fonts/'.$index.'.ttf',$text[$i-1]);
-  }
-//FOR LOOP FOR CREATING RANDOM LINES
-  for($i=1; $i<=30;$i++){
-    //RANDOM STARTING AND ENDING POSITION
-      $x1= rand(1,150);
-      $y1= rand(1,150);
-      $x2= rand(1,150);
-      $y2= rand(1,150);
-    //RANDOM COLOR
-      $r=rand(0,255);
-      $g=rand(0,255);
-      $b=rand(0,255);
-      $font_color = imagecolorallocate($image, $r ,$g, $b);
-    //CREATING RANDOM LINES
-      imageline($image,$x1,$y1,$x2,$y2,$font_color);
-
-
-  }
-//CREATING FINAL IMAGE (CAPTCHA)
-  imagejpeg($image);
-
+// Output the image
+header("Content-Type: image/png");
+imagepng($image);
+imagedestroy($image);
 ?>
